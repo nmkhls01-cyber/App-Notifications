@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>مراقب Drb7h1 الفوري</title>
+    <style>
+        body { font-family: system-ui, -apple-system, sans-serif; background: #0f172a; color: #f8fafc; margin: 0; padding: 15px; }
+        .container { max-width: 600px; margin: auto; }
+        .card { background: #1e293b; border-radius: 12px; padding: 15px; margin-bottom: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
+        .tweet-text { font-size: 16px; line-height: 1.5; margin-bottom: 10px; word-break: break-word; }
+        .media-container { margin-top: 10px; text-align: center; }
+        img, video { max-width: 100%; border-radius: 8px; margin-bottom: 10px; }
+        .btn-download { display: inline-block; background: #2563eb; color: white; padding: 8px 16px; border-radius: 6px; text-decoration: none; font-weight: bold; margin-top: 5px; }
+        .btn-download:hover { background: #1d4ed8; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .status { font-size: 14px; color: #38bdf8; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h2>مراقب تغريدات Drb7h1</h2>
+            <span class="status" id="status">جاري التحديث...</span>
+        </div>
+        
+        <!-- هنا ستظهر التغريدات والوسائط -->
+        <div id="tweets-feed">
+            <div class="card">جاري جلب أحدث التغريدات والوسائط...</div>
+        </div>
+    </div>
+
+    <script>
+        // دالة لجلب البيانات التي يقوم جيثوب بتحديثها تلقائياً
+        async function loadTweets() {
+            try {
+                // سنقوم بحفظ التغريدات في ملف JSON صغير يحدّثه سكربت GitHub Actions تلقائياً
+                const response = await fetch('latest_tweet.json?t=' + new Date().getTime());
+                if (!response.ok) throw new Error('فشل جلب البيانات');
+                
+                const data = await response.json();
+                let html = `
+                    <div class="card">
+                        <div class="tweet-text">${data.text}</div>
+                `;
+                
+                // إذا كانت التغريدة تحتوى على صورة أو فيديو
+                if (data.media_url) {
+                    if (data.media_type === 'video') {
+                        html += `
+                            <div class="media-container">
+                                <video controls src="${data.media_url}"></video>
+                                <br>
+                                <a href="${data.media_url}" class="btn-download" download="twitter_video.mp4">📥 تحميل الفيديو مجاناً</a>
+                            </div>
+                        `;
+                    } else {
+                        html += `
+                            <div class="media-container">
+                                <img src="${data.media_url}" alt="صورة التغريدة">
+                                <br>
+                                <a href="${data.media_url}" class="btn-download" download="twitter_image.jpg" target="_blank">📥 تحميل الصورة مجاناً</a>
+                            </div>
+                        `;
+                    }
+                }
+
+                html += `
+                        <div style="margin-top: 10px; font-size: 12px; color: #94a3b8;">
+                            <a href="${data.link}" target="_blank" style="color: #38bdf8;">رابط التغريدة الأصلي ↗</a>
+                        </div>
+                    </div>
+                `;
+
+                document.getElementById('tweets-feed').innerHTML = html;
+                document.getElementById('status').innerText = 'متصل (محدث)';
+            } catch (error) {
+                document.getElementById('status').innerText = 'خطأ في الجلب';
+            }
+        }
+
+        // تحديث البيانات تلقائياً كل 30 ثانية
+        loadTweets();
+        setInterval(loadTweets, 30000);
+    </script>
+</body>
+</html>
